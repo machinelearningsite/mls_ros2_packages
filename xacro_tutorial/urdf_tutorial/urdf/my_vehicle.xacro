@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<!--
+  vehicle.xacro
+  A simple example of using Xacro to create a vehicle-like robot
+  with a chassis and four wheels.
+-->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="xacro_vehicle">
+
+  <!-- ========== Parameters ========== -->
+  <!-- You can tweak these at the top to reshape your robot -->
+  <xacro:property name="chassis_length" value="1.0"/>
+  <xacro:property name="chassis_width"  value="0.6"/>
+  <xacro:property name="chassis_height" value="0.2"/>
+  <xacro:property name="wheel_radius"   value="0.15"/>
+  <xacro:property name="wheel_width"    value="0.05"/>
+
+  <!-- ========== Macros ========== -->
+  <!-- Chassis macro -->
+  <xacro:macro name="chassis" params="name color">
+    <link name="${name}">
+      <visual>
+        <geometry>
+          <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+        </geometry>
+        <material name="${color}">
+          <color rgba="0.2 0.2 0.8 1"/>
+        </material>
+      </visual>
+    </link>
+  </xacro:macro>
+
+  <!-- Wheel macro -->
+  <xacro:macro name="wheel" params="name parent xyz color">
+    <link name="${name}">
+      <visual>
+        <geometry>
+          <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+        </geometry>
+        <material name="${color}">
+          <color rgba="0.1 0.1 0.1 1"/>
+        </material>
+        <origin rpy="1.5708 0 0"/> <!-- rotate to lay flat -->
+      </visual>
+    </link>
+
+    <joint name="joint_${name}" type="continuous">
+      <parent link="${parent}"/>
+      <child link="${name}"/>
+      <origin xyz="${xyz}" rpy="0 0 0"/>
+      <axis xyz="0 1 0"/> <!-- wheel spins around the y-axis -->
+    </joint>
+  </xacro:macro>
+
+  <!-- ========== Robot Structure ========== -->
+  <!-- Root link -->
+  <xacro:chassis name="base_link" color="blue"/>
+
+  <!-- Wheels (x: forward/back, y: left/right, z: height) -->
+  <xacro:wheel name="front_left_wheel"  parent="base_link" xyz="0.35  0.25 -0.15" color="black"/>
+  <xacro:wheel name="front_right_wheel" parent="base_link" xyz="0.35 -0.25 -0.15" color="black"/>
+  <xacro:wheel name="rear_left_wheel"   parent="base_link" xyz="-0.35  0.25 -0.15" color="black"/>
+  <xacro:wheel name="rear_right_wheel"  parent="base_link" xyz="-0.35 -0.25 -0.15" color="black"/>
+
+    <!-- ========== ROS 2 Control Setup ========== -->
+  <ros2_control name="VehicleSystem" type="system">
+    <hardware>
+      <plugin>ros2_control_demo_hardware/DiffBotSystemHardware</plugin>
+    </hardware>
+
+    <joint name="joint_rear_left_wheel">
+      <command_interface name="velocity"/>
+      <state_interface name="velocity"/>
+      <state_interface name="position"/>
+    </joint>
+
+    <joint name="joint_rear_right_wheel">
+      <command_interface name="velocity"/>
+      <state_interface name="velocity"/>
+      <state_interface name="position"/>
+    </joint>
+  </ros2_control>
+
+  <!-- Transmission interfaces -->
+  <transmission name="rear_left_wheel_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_rear_left_wheel">
+      <hardware_interface>hardware_interface/VelocityJointInterface</hardware_interface>
+    </joint>
+    <actuator name="rear_left_motor">
+      <hardware_interface>hardware_interface/VelocityJointInterface</hardware_interface>
+      <mechanical_reduction>1</mechanical_reduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="rear_right_wheel_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="joint_rear_right_wheel">
+      <hardware_interface>hardware_interface/VelocityJointInterface</hardware_interface>
+    </joint>
+    <actuator name="rear_right_motor">
+      <hardware_interface>hardware_interface/VelocityJointInterface</hardware_interface>
+      <mechanical_reduction>1</mechanical_reduction>
+    </actuator>
+  </transmission>
+
+
+</robot>
