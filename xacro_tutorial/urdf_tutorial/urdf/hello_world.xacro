@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!--
+  hello_world.xacro
+  A minimal example showing how to use Xacro macros and parameters
+  to create simple geometric links in a ROS 2 robot description.
+-->
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hello_world_robot">
+
+  <!--
+    Macro: cube
+    Creates a box-shaped link and attaches it to a parent via a fixed joint.
+    Params:
+      name   - name of the link
+      size   - cube side length (m)
+      color  - color material name
+      parent - parent link to attach to
+      xyz    - offset position (x y z)
+  -->
+  <xacro:macro name="cube" params="name size color parent xyz">
+    <!-- Define the link -->
+    <link name="${name}">
+      <visual>
+        <geometry>
+          <box size="${size} ${size} ${size}"/>
+        </geometry>
+        <material name="${color}">
+          <!-- Simple color presets -->
+          <xacro:if value="${color == 'red'}">
+            <color rgba="1 0 0 1"/>
+          </xacro:if>
+          <xacro:if value="${color == 'green'}">
+            <color rgba="0 1 0 1"/>
+          </xacro:if>
+          <xacro:if value="${color == 'blue'}">
+            <color rgba="0 0 1 1"/>
+          </xacro:if>
+        </material>
+      </visual>
+    </link>
+
+    <!-- Attach via fixed joint -->
+    <joint name="joint_${name}" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${name}"/>
+      <origin xyz="${xyz}" rpy="0 0 0"/>
+    </joint>
+  </xacro:macro>
+
+  <!-- Root link -->
+  <link name="base_link"/>
+
+  <!-- Instantiate a few cubes -->
+  <xacro:cube name="small_box"  size="0.2" color="blue"  parent="base_link" xyz="0 0 0.2"/>
+  <xacro:cube name="medium_box" size="0.5" color="green" parent="base_link" xyz="0.5 0 0.5"/>
+  <xacro:cube name="large_box"  size="1" color="red"   parent="base_link" xyz="-0.9 0.0 0.5"/>
+
+</robot>
