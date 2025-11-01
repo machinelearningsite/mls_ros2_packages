@@ -2,6 +2,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.substitutions import FileContent, LaunchConfiguration, PathJoinSubstitution, Command
 from launch_ros.actions import Node
+from launch.actions import IncludeLaunchDescription
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 
@@ -17,8 +18,15 @@ def generate_launch_description():
         Command(['xacro', xacro_file]),
         value_type=str
     )
-    
 
+    urdf_launch = IncludeLaunchDescription(
+            PathJoinSubstitution([FindPackageShare('urdf_launch'), 'launch', 'display.launch.py']),
+            launch_arguments={
+                'urdf_package': 'urdf_tutorial',
+                'urdf_package_path': PathJoinSubstitution(['urdf', 'my_vehicle.xacro'])
+            }.items()
+        )
+    
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_sim_time',
@@ -35,11 +43,5 @@ def generate_launch_description():
             executable='demo_vehicle_interface_node',
             name='demo_vehicle_interface',
             output='screen'),
-        
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            output='screen',
-        )
+        urdf_launch,
     ])

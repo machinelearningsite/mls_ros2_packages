@@ -4,7 +4,11 @@
 VehicleInterface::VehicleInterface(rclcpp::NodeOptions options): Node("demo_vehicle_interface_pubisher",options)
 {
     joint_pub_ = this->create_publisher<sensor_msgs::msg::JointState>("joint_states", 10);
+    // create a publisher to tell robot_state_publisher the JointState information.
+    // robot_state_publisher will deal with this transformation
     broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+    // create a broadcaster to tell the tf2 state information
+    // this broadcaster will determine the position of coordinate system 'axis' in coordinate system 'odom'
     RCLCPP_INFO(this->get_logger(),"Starting state publisher");
     loop_rate_=std::make_shared<rclcpp::Rate>(33ms);
     timer_=this->create_wall_timer(33ms,std::bind(&VehicleInterface::publish,this));
@@ -19,22 +23,21 @@ void VehicleInterface::publish()
     // add time stamp
     joint_state.header.stamp=this->get_clock()->now();
     // Specify joints' name which are defined in the r2d2.urdf.xml and their content
-    joint_state.name={"joint_rear_left_wheel","joint_rear_right_wheel"};
-    joint_state.position={joint_rear_left_wheel, joint_rear_right_wheel};
+    joint_state.name={"joint_front_left_wheel","joint_front_right_wheel","joint_rear_left_wheel","joint_rear_right_wheel"};
+    joint_state.position={joint_front_left_wheel, joint_front_right_wheel, joint_rear_left_wheel, joint_rear_right_wheel};
 
     // add time stamp
     t.header.stamp=this->get_clock()->now();
     // specify the father and child frame
 
     // odom is the base coordinate system of tf2
-    t.header.frame_id="base_link";
+    t.header.frame_id="map";
     // axis is defined in r2d2.urdf.xml file and it is the base coordinate of model
     t.child_frame_id="base_link";
 
     // add translation change
     t.transform.translation.x=cos(joint_rear_left_wheel)*2;
     t.transform.translation.y=sin(joint_rear_left_wheel)*2;
-    t.transform.translation.z=0.7;
     tf2::Quaternion q;
     // euler angle into Quanternion and add rotation change
     q.setRPY(0,0,joint_rear_left_wheel+M_PI/2);

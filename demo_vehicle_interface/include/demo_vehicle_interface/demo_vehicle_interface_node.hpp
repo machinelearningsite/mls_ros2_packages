@@ -23,6 +23,8 @@ class VehicleInterface : public rclcpp::Node
         const double degree = M_PI/180.0;
         double tilt = 0.;
         double tinc = degree;
+        double joint_front_left_wheel = 0.;
+        double joint_front_right_wheel = 0.;
         double joint_rear_left_wheel = 0.;
         double joint_rear_right_wheel = 0.;
         double height = 0.;
